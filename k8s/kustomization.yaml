@@ -1,4 +1,4 @@
-namespace: krampoline
+namespace: default
 resources:
   - deployment.yaml
   - service.yaml
