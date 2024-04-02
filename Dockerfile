@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20.11.10
+FROM node:20.11.26
 WORKDIR /usr/src/app
 COPY . .
 RUN npm ci
