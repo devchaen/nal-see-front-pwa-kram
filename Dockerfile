@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20.11.1
+FROM node:20.11.0
 WORKDIR /usr/src/app
 COPY . .
 
