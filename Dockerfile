@@ -6,7 +6,6 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # 의존성 설치
-RUN npm update
 RUN npm install
 
 # 나머지 파일 복사
