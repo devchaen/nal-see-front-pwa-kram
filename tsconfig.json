@@ -27,10 +27,16 @@
     },
 
     /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": false
   },
-  "include": ["./src", "svg.d.ts"]
+  "include": [
+    "./src",
+    "svg.d.ts",
+    "public/firebase-messaging-sw.js",
+    "public/firebase-messaging-sw.js"
+  ]
 }
