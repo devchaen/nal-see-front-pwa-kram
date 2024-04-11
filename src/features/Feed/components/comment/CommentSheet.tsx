@@ -5,24 +5,26 @@ import { Comment } from '../../../../mocks/data/commentData';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import CommentBox from './comment';
 import { Input, StyledForm, UserImage } from './commentStyle';
-import { FaRegComment } from 'react-icons/fa';
+import { TfiComment } from 'react-icons/tfi';
 import useAuthStore from '@/store/useAuthStore';
 import { getComments, postComment } from '../../services/commentApi';
+import { SyncLoader } from 'react-spinners';
 
 interface CommentSheetProps {
   postId: number;
   username: string;
   userImage: string;
+  isDetail?: boolean;
 }
 
 const CommentSheet: React.FC<CommentSheetProps> = ({
   postId,
   username,
-  userImage,
+  isDetail = false,
 }) => {
   const { user } = useAuthStore();
   const userId = user?.userId;
-  console.log('userId: ', userId);
+  const userImage = user?.picture;
   const [open, setOpen] = useState(false);
   const [newComment, setNewComment] = useState('');
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -57,7 +59,10 @@ const CommentSheet: React.FC<CommentSheetProps> = ({
 
   return (
     <>
-      <FaRegComment onClick={() => setOpen(true)}>Open Comments</FaRegComment>
+      <TfiComment
+        className={`${isDetail ? 'mt-1.5 size-6' : 'mt-1 size-4'}`}
+        onClick={() => setOpen(true)}
+      />
       <BottomSheet
         open={open}
         onDismiss={() => setOpen(false)}
@@ -69,7 +74,7 @@ const CommentSheet: React.FC<CommentSheetProps> = ({
           className="z-40 h-[calc(100vh-183px)] overflow-y-auto p-4"
         >
           {isLoading ? (
-            <div>Loading...</div>
+            <SyncLoader className="bg-accent" />
           ) : (
             comments?.map((comment: Comment) => (
               <CommentBox

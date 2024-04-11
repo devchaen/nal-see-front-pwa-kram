@@ -5,7 +5,7 @@ export async function getProfileFeed({
   userId,
   lastPostId,
 }: {
-  userId: string | undefined;
+  userId: string | number;
   lastPostId: number;
 }): Promise<ProfileFeedData> {
   console.log('lastPostId: ', lastPostId);
@@ -37,11 +37,21 @@ export async function followUser(userId: string) {
 
 // /api/users/{userId}/unfollow
 
-export async function unfollowUser(userId: string) {
+export async function unFollowUser(userId: string) {
   try {
     const response = await api.post(`/api/users/${userId}/unfollow`);
     console.log('response: 언팔로우', response);
     return response.data;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function updateProfile(data) {
+  console.log('data: ', data);
+  try {
+    const response = await api.post(`/api/users/userInfo`, data);
+    console.log('response: 프로필 업데이트', response);
   } catch (error) {
     console.log(error);
   }

@@ -29,7 +29,7 @@ interface CommentProps {
 }
 
 const Comment: React.FC<CommentProps> = ({ comment, postId, isMyComment }) => {
-  const [isLiked, setIsLiked] = useState(comment.isLiked);
+  const [isLiked, setIsLiked] = useState(comment.liked);
   const [likeCount, setLikeCount] = useState(comment.likeCNT);
   const [showFullContent, setShowFullContent] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -111,7 +111,11 @@ const Comment: React.FC<CommentProps> = ({ comment, postId, isMyComment }) => {
     <CommentContainer>
       <UserImage
         onClick={moveProfile}
-        src={comment.userImage}
+        src={
+          comment.userImage
+            ? comment.userImage
+            : '/public/weatherImage/placeholder.jpg'
+        }
         alt={comment.username}
       />
       <CommentContent>

@@ -1,6 +1,7 @@
 import { type VitePWAOptions } from 'vite-plugin-pwa';
 
 export const PWAConfig: Partial<VitePWAOptions> = {
+  registerType: 'autoUpdate',
   includeAssets: [
     'favicon.svg',
     'favicon.ico',
@@ -14,6 +15,7 @@ export const PWAConfig: Partial<VitePWAOptions> = {
     theme_color: '#ffffff',
     start_url: '/',
     scope: '/',
+    display: 'standalone',
     icons: [
       {
         src: 'icon-16x16.png',
