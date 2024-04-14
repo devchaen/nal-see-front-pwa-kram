@@ -30,6 +30,7 @@ ENV VITE_FIREBASE_MEASUREMENT_ID=$VITE_FIREBASE_MEASUREMENT_ID
 WORKDIR /usr/src/app
 COPY . .
 RUN npm ci
+RUN echo $VITE_API_BASE_URL
 RUN npm run build
 
 # Serve stage ------------
