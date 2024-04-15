@@ -4,11 +4,12 @@ import { create } from 'zustand';
 import useAuthStore from './useAuthStore';
 import { getChatList, getChatMesg } from '@/features/Chat/services/chatApi';
 
-interface ChatItem {
+export interface ChatItem {
   id: string;
   chatId: string;
   createAt: string;
   msg: string;
+  readCnt: number;
   sender: string;
   senderId: string;
   senderImg: string;
@@ -32,6 +33,8 @@ interface WebSocketState {
   isConnected: boolean;
   chatList: ChatItem[];
   messages: Message[];
+  onLineUsers: string[];
+  onLineStatus: string;
   setMessages: (chatId: string) => void;
   setChatList: () => void;
   connect: () => void;
@@ -48,6 +51,8 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
   isConnected: false,
   chatList: [],
   messages: [],
+  onLineUsers: [],
+  onLineStatus: '',
   setMessages: async (chatId: string) => {
     const userId = useAuthStore.getState().user?.userId;
     if (userId) {
@@ -60,7 +65,11 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
     const userId = useAuthStore.getState().user?.userId;
     if (userId) {
       const chatList = await getChatList();
-      set({ chatList });
+      const updateChatList = chatList.sort(
+        (a: ChatItem, b: ChatItem) =>
+          new Date(b.createAt).getTime() - new Date(a.createAt).getTime(),
+      );
+      set({ chatList: updateChatList });
     }
   },
   connect: async () => {
@@ -77,7 +86,6 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
     webSocketService.client.onDisconnect = () => {
       set({ isConnected: false });
       console.log('연결이 끊어졌습니다. 재연결을 시도합니다.');
-      // 재연결 로직 추가
       webSocketService.activate();
     };
 
@@ -92,9 +100,7 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
   },
   subscribeToChatList: async (userId: string) => {
     const { webSocketService } = get();
-    console.log('webSocketService: adsdads', webSocketService);
     if (webSocketService && useWebSocketStore.getState().isConnected) {
-      console.log('된거임?');
       webSocketService.subscribeToDestination(
         `/sub/${userId}/chat-list`,
         (message) => {
@@ -135,6 +141,41 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
       webSocketService.client.unsubscribe(`/sub/${chatId}/chat`);
     }
   },
+  // subscribeToOnLineUsers: async () => {
+  //   const { webSocketService } = get();
+  //   if (webSocketService && useWebSocketStore.getState().isConnected) {
+  //     console.log('onLineUsers: 데이터 수신 엔드포인트');
+  //     webSocketService.subscribeToDestination('/sub/chat', (message) => {
+  //       const onLineUsers = JSON.parse(message.body);
+  //       console.log('onLineUsers: 데이터 수신 엔드포인트', onLineUsers);
+  //       set({ onLineUsers });
+  //     });
+  //   }
+  // },
+  // unsubscribeFromOnLineStatus: async () => {
+  //   const { webSocketService } = get();
+  //   if (webSocketService) {
+  //     webSocketService.client.unsubscribe('/sub/chat-list');
+  //   }
+  // },
+  // subscribeToOnLineStatus: async () => {
+  //   const { webSocketService } = get();
+  //   if (webSocketService && useWebSocketStore.getState().isConnected) {
+  //     console.log('onLineStatus: 온라인상태 구독시작');
+  //     webSocketService.subscribeToDestination('/sub/chat-list', (message) => {
+  //       const onLineStatus = JSON.parse(message.body);
+  //       console.log('onLineStatus: 온라인상태 구독완료 ', onLineStatus);
+
+  //       set({ onLineStatus });
+  //     });
+  //   }
+  // },
+  // unsubscribeFromOnLineUsers: async () => {
+  //   const { webSocketService } = get();
+  //   if (webSocketService) {
+  //     webSocketService.client.unsubscribe('/sub/chat');
+  //   }
+  // },
   sendMessage: async (chatId: string, content: string) => {
     const { webSocketService } = get();
     const userId = useAuthStore.getState().user?.userId;

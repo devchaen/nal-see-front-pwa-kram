@@ -21,6 +21,7 @@ import {
   updateComment,
 } from '../../services/commentApi';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { convertImgSrcToHTTPS } from '@/lib/helpers';
 
 interface CommentProps {
   comment: CommentType;
@@ -113,8 +114,8 @@ const Comment: React.FC<CommentProps> = ({ comment, postId, isMyComment }) => {
         onClick={moveProfile}
         src={
           comment.userImage
-            ? comment.userImage
-            : '/public/weatherImage/placeholder.jpg'
+            ? convertImgSrcToHTTPS(comment.userImage)
+            : '/assets/weatherImage/placeholder.jpg'
         }
         alt={comment.username}
       />
@@ -143,6 +144,7 @@ const Comment: React.FC<CommentProps> = ({ comment, postId, isMyComment }) => {
               type="text"
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
+              className="w-full rounded-md focus:border-blue-500 focus:outline-none"
             />
           </Content>
         ) : (

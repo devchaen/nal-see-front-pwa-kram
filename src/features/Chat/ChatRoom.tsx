@@ -85,8 +85,8 @@ const ChatRoomPage = () => {
       <BackBtnHeader title="Chat Room" />
       <div className="flex-1 overflow-y-auto">
         {messages
-          .slice()
-          .reverse()
+          // .slice()
+          // .reverse()
           .map((data, index) => (
             <ChatBubble
               key={index}
@@ -111,7 +111,7 @@ const ChatRoomPage = () => {
             console.log('e.value: ', e.target.value);
             setMessage(e.target.value);
           }}
-          placeholder="댓글을 입력해주세요."
+          placeholder="메시지를 입력해주세요."
           className="ml-3 rounded-full"
         />
       </StyledForm>
