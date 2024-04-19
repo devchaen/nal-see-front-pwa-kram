@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export const getChatList = async () => {
   const response = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL}:8090/chats`,
+    `${import.meta.env.VITE_API_BASE_URL}/ws/chats`,
     {
       withCredentials: true,
     },
@@ -13,7 +13,7 @@ export const getChatList = async () => {
 
 export const getChatMesg = async (chatId: string) => {
   const response = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL}:8090/chats/${chatId}`,
+    `${import.meta.env.VITE_API_BASE_URL}/ws/chats/${chatId}`,
     {
       withCredentials: true,
     },
@@ -23,7 +23,7 @@ export const getChatMesg = async (chatId: string) => {
 
 export const exitChat = async (chatId: string) => {
   const response = await axios.post(
-    `${import.meta.env.VITE_API_BASE_URL}:8090/exit-room?chatId=${chatId}`,
+    `${import.meta.env.VITE_API_BASE_URL}/ws/exit-room?chatId=${chatId}`,
     null,
     {
       withCredentials: true,
