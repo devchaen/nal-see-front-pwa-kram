@@ -21,6 +21,7 @@ import {
 import useFeedInteraction from '../../hooks/useFeedInteraction';
 import useCarousel from '../../hooks/useCarosel';
 import { convertImgSrcToHTTPS, formatNotificationDate } from '@/lib/helpers';
+import { toast } from 'sonner';
 interface FeedCardProps {
   feed: FeedDetail;
   onUpdateSuccess: () => void;
@@ -70,13 +71,26 @@ const FeedDetailCard: React.FC<FeedCardProps> = ({ feed, onUpdateSuccess }) => {
     }
   };
 
+  const confirmDelete = () => {
+    toast('⛅︎ 게시물을 삭제하시겠어요?', {
+      duration: 10000,
+      action: {
+        label: '삭제',
+        onClick: () => handleDelete(),
+      },
+      actionButtonStyle: {
+        background: 'var(--accent)',
+      },
+    });
+  };
+
   const displayedContent =
     feed && showFullContent
       ? feed.postResponseDto.content
       : feed?.postResponseDto.content?.slice(0, maxContentLength);
 
   return (
-    <div className="mb-4 h-[calc(100vh-170px)] overflow-hidden overflow-y-scroll scrollbar-hide">
+    <div className="h-[calc(100dvh-128px)] overflow-y-scroll scrollbar-hide">
       <div className="flex items-center justify-between p-3 px-4">
         <div className="flex">
           <img
@@ -106,10 +120,10 @@ const FeedDetailCard: React.FC<FeedCardProps> = ({ feed, onUpdateSuccess }) => {
           {isMyFeed ? (
             <>
               <GoPencil onClick={handleEdit} />
-              <FaTrashAlt onClick={handleDelete} />
+              <FaTrashAlt onClick={confirmDelete} />
             </>
           ) : null}
-          <span className=" text-sm text-gray-500">
+          <span className=" text-nowrap text-sm text-gray-500">
             {formatNotificationDate(feed.postResponseDto.createDate)}
           </span>
         </div>
@@ -119,7 +133,7 @@ const FeedDetailCard: React.FC<FeedCardProps> = ({ feed, onUpdateSuccess }) => {
           <CarouselContent>
             {feed.postResponseDto.pictureList.map((picture, index) => (
               <CarouselItem key={index}>
-                <div className="relative h-96">
+                <div className="relative h-[calc(100dvw*4/3)]">
                   <img
                     className="absolute left-0 top-0 size-full object-cover"
                     src={picture}
@@ -141,8 +155,8 @@ const FeedDetailCard: React.FC<FeedCardProps> = ({ feed, onUpdateSuccess }) => {
           ))}
         </div>
       </div>
-      <div className="p-3">
-        <div className="mb-2 flex">
+      <div className="p-3 px-4">
+        <div className="mb-1 flex">
           <span
             className="z-0 mr-2 cursor-pointer"
             onClick={(event) => handleToggleLike(event)}
@@ -162,8 +176,8 @@ const FeedDetailCard: React.FC<FeedCardProps> = ({ feed, onUpdateSuccess }) => {
             />
           </span>
         </div>
-        <span className="ml-0.5 text-base font-normal">좋아요 {likeCnt}</span>
-        <p className="m-0">
+        <span className="ml-0.5 text-base font-medium">좋아요 {likeCnt}</span>
+        <p className="ml-0.5 mt-2 text-base">
           {displayedContent}
           {feed.postResponseDto.content.length > maxContentLength && (
             <>

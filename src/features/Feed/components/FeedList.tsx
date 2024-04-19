@@ -10,30 +10,37 @@ import { SyncLoader } from 'react-spinners';
 import { LocationStatusView } from './isCurrentLocation/IsCurrentLocation';
 import SplashGirl from '@/assets/splash-girl2.png';
 import SplashSun from '@/assets/splash-sun.png';
+import { toast } from 'sonner';
 
 const FeedList = () => {
   const { longitude, latitude, errorMsg, isCurrentLocation } =
     useCurrentLocation();
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
-    useInfiniteQuery<Feed[], string[]>({
-      queryKey: ['feedList'],
-      queryFn: async ({ pageParam = -1 }) => {
-        console.log('pageParam: ', pageParam);
-        const response = await getFeedList(
-          pageParam as number,
-          longitude as number,
-          latitude as number,
-        );
-        return response;
-      },
-      getNextPageParam: (lastPage) => {
-        const lastFeed = lastPage[lastPage.length - 1];
-        return lastFeed ? lastFeed.postResponseDto.id : undefined;
-      },
-      enabled: longitude !== undefined && latitude !== undefined,
-      initialPageParam: undefined,
-    });
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+    isError,
+    error,
+  } = useInfiniteQuery<Feed[], string[]>({
+    queryKey: ['feedList'],
+    queryFn: async ({ pageParam = -1 }) => {
+      const response = await getFeedList(
+        pageParam as number,
+        longitude as number,
+        latitude as number,
+      );
+      return response;
+    },
+    getNextPageParam: (lastPage) => {
+      const lastFeed = lastPage[lastPage.length - 1];
+      return lastFeed ? lastFeed.postResponseDto.id : undefined;
+    },
+    enabled: longitude !== undefined && latitude !== undefined,
+    initialPageParam: undefined,
+  });
 
   const [ref, inView] = useInView({
     threshold: 0,
@@ -51,6 +58,24 @@ const FeedList = () => {
       refetch();
     }
   }, [isCurrentLocation, refetch]);
+
+  useEffect(() => {
+    if (isError) {
+      console.log('feedList error', error);
+
+      toast('세션 만료', {
+        description:
+          '세션이 만료되어 데이터를 불러올 수 없습니다. 다시 로그인하시겠어요?',
+        action: {
+          label: '로그인',
+          onClick: () => window.location.reload(),
+        },
+        actionButtonStyle: {
+          background: 'var(--accent)',
+        },
+      });
+    }
+  }, [error, isError]);
 
   if (errorMsg) {
     return (
@@ -92,7 +117,7 @@ const FeedList = () => {
   return (
     <div className="h-[calc(100vh-160px)] w-full overflow-y-scroll scrollbar-hide">
       <LocationStatusView isCurrentLocation={isCurrentLocation} />
-      <div className="grid grid-cols-2 justify-items-center">
+      <div className="grid grid-cols-2 justify-items-center gap-0 px-2">
         {data?.pages.map((page, pageIndex) => (
           <React.Fragment key={pageIndex}>
             {page.map((feed: Feed) => (

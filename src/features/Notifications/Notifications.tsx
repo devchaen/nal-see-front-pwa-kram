@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { INotificationData } from '@/types/notifications';
 import { useEffect, useState } from 'react';
 import { useNotificationStore } from '@/store/useNotificationStore';
+import NotificationEmptyState from './components/NotificationEmptyState';
 
 const NotificationsPage = () => {
   const { setNewNotification } = useNotificationStore();
@@ -35,11 +36,14 @@ const NotificationsPage = () => {
   return (
     <div className="flex-1">
       <BackBtnHeader title="알림" />
-      <div className="h-[calc(100dvh-152px)] overflow-y-scroll scrollbar-hide">
-        {notificationList?.length &&
+      <div className="h-[calc(100dvh-136px)] overflow-y-scroll scrollbar-hide">
+        {notificationList?.length ? (
           notificationList.map((item: INotificationData) => (
             <NotificationItem key={item.id} notification={item} />
-          ))}
+          ))
+        ) : (
+          <NotificationEmptyState />
+        )}
       </div>
     </div>
   );

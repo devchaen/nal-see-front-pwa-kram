@@ -2,13 +2,18 @@ import ChatItem from './components/ChatItem';
 import ChatContainer from './components/ChatContainer';
 import useAuthStore from '@/store/useAuthStore';
 import useWebSocketStore from '@/store/useWebsocketStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { convertImgSrcToHTTPS } from '@/lib/helpers';
 import SplashGirl from '@/assets/splash-girl2.png';
 import SplashSun from '@/assets/splash-sun.png';
 import Navbar from '@/components/NalSeeNavbar';
+interface IUserStatus {
+  [key: string]: boolean;
+}
 
 const ChatListPage = () => {
+  const [userStatus, setUserStatus] = useState<IUserStatus>({});
+
   const {
     connect,
     disconnect,
@@ -17,8 +22,8 @@ const ChatListPage = () => {
     subscribeToChatList,
     unSubscribeFromChatList,
     isConnected,
-    onLineStatus,
-    onLineUsers,
+    // onLineUsers,
+    userList,
   } = useWebSocketStore();
   const { user } = useAuthStore();
   const myId = user?.userId;
@@ -57,10 +62,39 @@ const ChatListPage = () => {
   ]);
 
   useEffect(() => {
-    console.log('chatList: ', chatList);
-    console.log('onLineStatus: ', onLineStatus);
-    console.log('onLineUsers: ', onLineUsers);
-  }, [chatList, onLineStatus, onLineUsers]);
+    const subscribeToUserStatus = async () => {
+      const url = `${import.meta.env.VITE_API_BASE_URL}:8080/subscribe?userIds=${userList.join(',')}`;
+      try {
+        const eventSource = new EventSource(url);
+
+        eventSource.onopen = () => {};
+
+        eventSource.addEventListener('userStatus', function (event) {
+          const newData = JSON.parse(event.data);
+          setUserStatus((prevStatus) => ({
+            ...prevStatus,
+            ...newData,
+          }));
+        });
+
+        eventSource.onerror = (error) => {
+          console.error('SSE error:', error);
+          eventSource.close();
+        };
+
+        return () => {
+          eventSource.close();
+        };
+      } catch (error) {
+        console.error('Exception while setting up SSE:', error);
+      }
+    };
+
+    if (userList.length > 0) {
+      subscribeToUserStatus();
+    }
+    console.log(userStatus);
+  }, [userList]);
 
   if (!chatList) {
     return (
@@ -89,7 +123,6 @@ const ChatListPage = () => {
       </div>
     );
   }
-
   return (
     <div className="flex-1">
       <Navbar />
@@ -98,14 +131,25 @@ const ChatListPage = () => {
           <ChatItem
             key={index}
             chatId={chat.chatId}
-            profileImgUrl={convertImgSrcToHTTPS(
-              myId == chat.senderId ? chat.receiverImg : chat.senderImg,
-            )}
+            profileImgUrl={
+              myId == chat.senderId
+                ? chat.receiverImg
+                : chat.senderImg
+                  ? convertImgSrcToHTTPS(
+                      myId == chat.senderId ? chat.receiverImg : chat.senderImg,
+                    )
+                  : null
+            }
             username={myId == chat.senderId ? chat.receiver : chat.sender}
             lastMessage={chat.msg}
             lastUpdatedDate={chat.createAt}
             readCnt={chat.readCnt}
             senderId={chat.senderId}
+            isOnline={
+              userStatus[
+                myId == chat.senderId ? chat.receiverId : chat.senderId
+              ]
+            }
           />
         ))}
       </ChatContainer>

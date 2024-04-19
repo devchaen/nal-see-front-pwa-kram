@@ -10,6 +10,7 @@ type ProfileHeaderProps = {
     followerCount: string | number;
     username: string;
     isFollowed: boolean;
+    userId: string;
   };
 };
 
@@ -27,14 +28,23 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ userProfileData }) => {
           alt="user"
         />
         <div className="inline-flex w-[65%] justify-center gap-9">
-          <FeedCount count={userProfileData.feedCount} counterName="게시물" />
+          <FeedCount
+            count={userProfileData.feedCount}
+            counterName="게시물"
+            userId={null}
+            isFeedCount={true}
+          />
           <FeedCount
             count={userProfileData.followerCount}
             counterName="팔로워"
+            userId={userProfileData.userId}
+            isFeedCount={false}
           />
           <FeedCount
             count={userProfileData.followingCount}
             counterName="팔로잉"
+            userId={userProfileData.userId}
+            isFeedCount={false}
           />
         </div>
       </div>

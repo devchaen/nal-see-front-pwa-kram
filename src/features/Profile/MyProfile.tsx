@@ -20,6 +20,12 @@ import { Button } from '@/components/ui/button';
 import { MoreOutline } from 'antd-mobile-icons';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
+import { Switch } from '@/components/ui/switch';
+import {
+  getNotificationStatus,
+  unregisterFirebaseSW,
+} from '../Notifications/utils/notificationUtils';
+import { handleAllowNotification } from '@/services/fcm/notificationPermission';
 
 const MyProfilePage = () => {
   const { user } = useAuthStore();
@@ -27,13 +33,14 @@ const MyProfilePage = () => {
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [isEtcSheetOpen, setIsEtcSheetOpen] = useState(false);
   const [showExitForm, setShowExitForm] = useState(false);
-  const [password, setPassword] = useState<string>();
+  const [email, setEmail] = useState<string>();
   const navigate = useNavigate();
 
   const {
     data: userInfo,
     refetch: refetchProfileData,
     isLoading,
+    isError,
   } = useQuery({
     queryKey: ['userDetails'],
     queryFn: getUserDetails,
@@ -54,14 +61,11 @@ const MyProfilePage = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (!password) toast.error('탈퇴를 위해 비밀번호를 입력해주세요.');
-    if (user && password) {
+    if (!email)
+      toast.error('본인 확인을 위해 카카오계정 이메일을 입력해주세요.');
+    if (user && email) {
       try {
-        const response = await deleteAccount(
-          user?.userName,
-          user?.email,
-          password,
-        );
+        const response = await deleteAccount(user?.userName, email);
 
         if (response.status === 200) {
           toast.success('서비스 탈퇴 완료', {
@@ -74,9 +78,10 @@ const MyProfilePage = () => {
         }
       } catch (error) {
         const err = error as AxiosError;
-        if (err.status === 400) {
+        if (err.response?.status === 400) {
           toast.error('탈퇴 처리 실패', {
-            description: '입력하신 비밀번호가 일치하지 않습니다.',
+            description:
+              '입력하신 카카오 이메일이 회원정보와 일치하지 않습니다.',
           });
         }
         console.log(error);
@@ -90,6 +95,8 @@ const MyProfilePage = () => {
 
   const handleCloseEtcSheet = () => {
     setIsEtcSheetOpen(false);
+    setShowExitForm(false);
+    setEmail('');
   };
 
   const refetchData = () => {
@@ -97,10 +104,25 @@ const MyProfilePage = () => {
     refetchProfileHeader();
   };
 
-  if (isLoading || !userData) {
+  if (isError && !userData) {
+    toast('세션 만료', {
+      description:
+        '세션이 만료되어 데이터를 불러올 수 없습니다. 다시 로그인하시겠어요?',
+      action: {
+        label: '로그인',
+        onClick: () => window.location.reload(),
+      },
+      actionButtonStyle: {
+        background: 'var(--accent)',
+      },
+      duration: 10000,
+    });
+  }
+
+  if (isLoading) {
     return (
-      <div className="flex h-[100dvh-183px] flex-1 flex-col overflow-y-scroll">
-        <BackBtnHeader title="My Profile" />
+      <div className="flex h-[calc(100dvh-80px)] flex-col overflow-y-scroll">
+        <BackBtnHeader title="내 프로필" />
         <ProfileHeaderSkeleton />
         <Skeleton className=" mb-3 ml-8 h-8 w-1/12 rounded-md font-bold text-secondary-foreground" />
         <div className="flex items-center justify-center gap-7">
@@ -132,37 +154,52 @@ const MyProfilePage = () => {
         open={isEtcSheetOpen}
         onDismiss={handleCloseEtcSheet}
         snapPoints={({ maxHeight }) =>
-          showExitForm ? [maxHeight * 0.4] : [maxHeight * 0.15]
+          showExitForm ? [maxHeight * 0.45] : [maxHeight * 0.25]
         }
       >
-        <div
-          onClick={() => setShowExitForm(!showExitForm)}
-          className="inline-flex h-[60px] w-full items-center px-7 py-2"
-        >
-          <p className="border-b-primary-foreground/40 w-full border-b pb-2 text-lg font-semibold">
+        <div className="border-b-primary-foreground/40 inline-flex h-[60px] w-full items-center justify-center border-b px-7 py-2">
+          <p className="w-full py-2 text-lg font-medium">🛎️ 알림 설정</p>
+          <Switch
+            defaultChecked={getNotificationStatus()}
+            onCheckedChange={(checked) => {
+              if (checked) {
+                handleAllowNotification();
+              } else {
+                unregisterFirebaseSW();
+              }
+            }}
+          />
+        </div>
+        <div className="border-b-primary-foreground/40 flex w-full flex-col items-center border-b px-7 py-2">
+          <p
+            onClick={() => setShowExitForm(!showExitForm)}
+            className={`w-full py-2 text-lg font-medium ${showExitForm ? '' : ''}`}
+          >
             🚪 회원 탈퇴
           </p>
-        </div>
-        {showExitForm && (
-          <div className="flex w-full flex-col justify-center gap-4 px-7 pt-1">
-            <p className="text-lg">🥺 정말 계정을 삭제하시겠어요?</p>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="비밀번호를 입력하세요..."
-              className="border-b border-b-black p-1 text-base focus:outline-none"
-            />
-            <div className="inline-flex justify-end gap-2">
-              <Button onClick={handleDeleteAccount} variant="secondary">
-                네 탈퇴 할게요...
-              </Button>
-              <Button onClick={() => setIsEtcSheetOpen(false)} variant="accent">
-                탈퇴는 안할래요!
-              </Button>
+          {showExitForm && (
+            <div className="flex w-full flex-col justify-center gap-3">
+              <p className="text-sm font-light">
+                🥺 정말 이 계정을 삭제하시겠어요?
+              </p>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="카카오 계정 이메일 주소를 입력해주세요"
+                className="border-b border-b-black p-1 text-base font-semibold focus:outline-none"
+              />
+              <div className="inline-flex justify-end gap-2">
+                <Button onClick={handleDeleteAccount} variant="secondary">
+                  네 탈퇴 할게요...
+                </Button>
+                <Button onClick={handleCloseEtcSheet} variant="accent">
+                  탈퇴는 안할래요!
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </BottomSheet>
       <div className="flex items-center justify-center gap-2 px-6">
         <Button variant="secondary" onClick={handleEdit} className="h-8 w-3/5">
