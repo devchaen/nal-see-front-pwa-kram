@@ -5,7 +5,7 @@ import kakaoLoginBtn from '@/assets/kakao_login_medium_wide.png';
 import PrivacyPolicy from './PrivacyPolicy';
 
 const handleOauthLogin = (provider: string) => {
-  const oauthLoginUrl = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/${provider}`;
+  const oauthLoginUrl = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/${provider}?redirect_uri=${import.meta.env.VITE_OAUTH2_REDIRECT_URI}`;
   window.location.href = oauthLoginUrl;
 };
 
